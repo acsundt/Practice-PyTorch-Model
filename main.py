@@ -81,6 +81,16 @@ def main():
             print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_losses}, Validation loss: {val_losses}")
 
 
+    # Visualize
+    plt.plot(train_losses, label='Training Loss')
+    plt.plot(val_losses, label='Validation Loss')
+    plt.legend()
+    plt.title("Loss Over Epochs")
+    plt.show()
+
+
+
+
     # print("length of dataset = ", len(dataset))
 
    #  target_to_class = {v: k for k, v in ImageFolder(dataset_path).class_to_idx.items()}
