@@ -15,6 +15,9 @@ from PlayingCardDataset import PlayingCardDataset
 from SimpleCardClassifier import SimpleCardClassifier
 
 from tqdm.notebook import tqdm
+from glob import glob
+
+from Visualizations import preprocess_image, predict, visualize_predictions
 
 
 def main():
@@ -45,6 +48,8 @@ def main():
 
     num_epochs = 5
     train_losses, val_losses = [], []
+
+    class_names = test_dataset.classes
 
     model.to(device)
 
@@ -88,7 +93,16 @@ def main():
     plt.title("Loss Over Epochs")
     plt.show()
 
+    test_images = glob(r"C:\Users\aidan\OneDrive\Documents\ML_Stuff\Card_Images_Dataset\test/*/*")
+    test_examples = np.random.choice(test_images,10)
 
+    for example in test_examples:
+        original_image, image_tensor = preprocess_image(example, transform)
+        probabilities = predict(model, image_tensor, device)
+
+        # Assuming dataset.classes gives the class names
+        class_names = dataset.classes
+        visualize_predictions(original_image, probabilities, class_names)
 
 
     # print("length of dataset = ", len(dataset))
