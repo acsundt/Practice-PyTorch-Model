@@ -5,6 +5,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 import timm
+import torch_directml
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -24,6 +25,11 @@ def main():
 
     model = SimpleCardClassifier(num_classes=53)
 
+    device = torch_directml.device()
+    print("Using device:", device)
+
+    model.to(device)
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -32,9 +38,9 @@ def main():
         transforms.ToTensor(),
     ])
 
-    train_path = r"C:\Users\aidan\OneDrive\Documents\ML_Stuff\Card_Images_Dataset\train"
-    valid_path = r"C:\Users\aidan\OneDrive\Documents\ML_Stuff\Card_Images_Dataset\valid"
-    test_path = r"C:\Users\aidan\OneDrive\Documents\ML_Stuff\Card_Images_Dataset\test"
+    train_path = r"C:\Users\Aidan Sundt\PycharmProjects\Practice-PyTorch-Model\Card_Images_Dataset\train"
+    valid_path = r"C:\Users\Aidan Sundt\PycharmProjects\Practice-PyTorch-Model\Card_Images_Dataset\valid"
+    test_path = r"C:\Users\Aidan Sundt\PycharmProjects\Practice-PyTorch-Model\Card_Images_Dataset\test"
 
     train_dataset = PlayingCardDataset(data_dir=train_path, transform=transform)
     val_dataset = PlayingCardDataset(valid_path, transform=transform)
@@ -44,27 +50,23 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
     num_epochs = 5
     train_losses, val_losses = [], []
 
-    class_names = test_dataset.classes
-
-    model.to(device)
+    # class_names = test_dataset.classes
 
     for epoch in range(num_epochs):
         # Set model to train
         model.train()
         running_loss = 0.0
-        for images, labels in train_loader:
+        for images, labels in tqdm(train_loader, desc='Training loop'):
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-            running_loss += loss.item() * inputs.size(0)
+            running_loss += loss.item() * labels.size(0)
         train_loss = running_loss / len(train_loader.dataset)
         train_losses.append(train_loss)
 
@@ -74,16 +76,16 @@ def main():
         with torch.no_grad():
             for images, labels in tqdm(val_loader, desc='Validation Loop'):
                 # Move inputs and labels to the device
-                inputs, labels = inputs.to(device), labels.to(device)
+                images, labels = images.to(device), labels.to(device)
 
                 outputs = model(images)
                 loss = criterion(outputs, labels)
-                running_loss += loss.item() * inputs.size(0)
-            val_loss = running_loss / len(val_loader.dataset)
-            val_losses.append(val_loss)
+                running_loss += loss.item() * labels.size(0)
+        val_loss = running_loss / len(val_loader.dataset)
+        val_losses.append(val_loss)
 
         # Print epoch stats
-            print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_losses}, Validation loss: {val_losses}")
+        print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_losses}, Validation loss: {val_losses}")
 
 
     # Visualize
@@ -93,7 +95,7 @@ def main():
     plt.title("Loss Over Epochs")
     plt.show()
 
-    test_images = glob(r"C:\Users\aidan\OneDrive\Documents\ML_Stuff\Card_Images_Dataset\test/*/*")
+    test_images = glob(r"C:\Users\Aidan Sundt\PycharmProjects\Practice-PyTorch-Model\Card_Images_Dataset\test/*/*")
     test_examples = np.random.choice(test_images,10)
 
     for example in test_examples:
@@ -101,7 +103,7 @@ def main():
         probabilities = predict(model, image_tensor, device)
 
         # Assuming dataset.classes gives the class names
-        class_names = dataset.classes
+        class_names = test_dataset.classes  # You might get this from your dataset
         visualize_predictions(original_image, probabilities, class_names)
 
 

@@ -5,7 +5,6 @@ from torchvision.datasets import ImageFolder
 class PlayingCardDataset(Dataset):
     def __init__(self, data_dir, transform=None):
         self.data = ImageFolder(data_dir, transform=transform)
-        pass
 
     def __len__(self):
         return len(self.data)

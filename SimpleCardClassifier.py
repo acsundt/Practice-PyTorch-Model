@@ -17,9 +17,26 @@ class SimpleCardClassifier(nn.Module):
         super(SimpleCardClassifier, self).__init__()
         # Where we define all the parts of the model
         self.base_model = timm.create_model('efficientnet_b0', pretrained=True)
+
+        #self.features = nn.Sequential(*list(self.base_model.children())[:-1])
+
+        self.features = nn.Sequential(*list(self.base_model.children())[:-1])
+
+        for param in self.features.parameters():
+            param.requires_grad = True
+
+
         enet_out_size = 1280
         # Make a classifier
-        self.classifier = nn.Linear(enet_out_size, num_classes)
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(enet_out_size, num_classes)
+        )
+
+
+
+
+
 
     def forward(self, x):
         # Connect these parts and return the output
