@@ -54,13 +54,14 @@ def main():
     train_losses, val_losses = [], []
 
     # class_names = test_dataset.classes
-
     for epoch in range(num_epochs):
-        # Set model to train
+        # Training phase
         model.train()
         running_loss = 0.0
         for images, labels in tqdm(train_loader, desc='Training loop'):
+            # Move inputs and labels to the device
             images, labels = images.to(device), labels.to(device)
+
             optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -74,7 +75,7 @@ def main():
         model.eval()
         running_loss = 0.0
         with torch.no_grad():
-            for images, labels in tqdm(val_loader, desc='Validation Loop'):
+            for images, labels in tqdm(val_loader, desc='Validation loop'):
                 # Move inputs and labels to the device
                 images, labels = images.to(device), labels.to(device)
 
@@ -83,9 +84,8 @@ def main():
                 running_loss += loss.item() * labels.size(0)
         val_loss = running_loss / len(val_loader.dataset)
         val_losses.append(val_loss)
+        print(f"Epoch {epoch + 1}/{num_epochs} - Train loss: {train_loss}, Validation loss: {val_loss}")
 
-        # Print epoch stats
-        print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_losses}, Validation loss: {val_losses}")
 
 
     # Visualize
